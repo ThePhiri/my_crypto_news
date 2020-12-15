@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mycryptonews/helper/data.dart';
+import 'package:mycryptonews/helper/news.dart';
+import 'package:mycryptonews/models/article_model.dart';
 import 'package:mycryptonews/models/category_model.dart';
 
 class Home extends StatefulWidget {
@@ -10,13 +12,27 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   List<CategoryModel> categories = new List<CategoryModel>();
+  List<ArticleModel> articles = new List<ArticleModel>();
+
+  bool _loading = true;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     categories = getCategories();
-
+    getNews();
   }
+
+  getNews() async{
+    News newsClass = News();
+    await newsClass.getNews();
+    articles = newsClass.news;
+    setState(() {
+      _loading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,9 +49,14 @@ class _HomeState extends State<Home> {
         ),
         elevation: 0.0,
       ),
-      body: Container(
+      body: _loading ? Center(
+        child: Container(
+          child: CircularProgressIndicator(),
+        ),
+      ) : Container(
         child: Column(
           children: <Widget>[
+            ///Categories
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16),
               height: 70,
@@ -49,6 +70,20 @@ class _HomeState extends State<Home> {
                       categoryName: categories[index].categoryName,
                     );
                   }              ),
+            ),
+
+            ///Blogs
+            Container(
+              child: ListView.builder(
+                  itemCount: articles.length,
+                  shrinkWrap: true,
+                  itemBuilder:(context, index){
+                    return BlogTile(
+                        imageUrl: articles[index].urlToImage,
+                        title: articles[index].title,
+                        desc: articles[index].description);
+                  }
+              ),
             )
           ],
         ),
@@ -96,7 +131,7 @@ class CategoryTile extends StatelessWidget {
 
 class BlogTile extends StatelessWidget {
   final String imageUrl, title, desc;
-  BlogTile({@required this.imageUrl, @required this.title, @required this.desc})
+  BlogTile({@required this.imageUrl, @required this.title, @required this.desc});
 
   @override
   Widget build(BuildContext context) {
@@ -111,4 +146,6 @@ class BlogTile extends StatelessWidget {
     );
   }
 }
+
+
 
